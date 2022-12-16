@@ -48,7 +48,7 @@ runs the spectorgram output through two trainable Dense layers.
 
 ```python3
 import tensorflow as tf
-from realbook.signal import STFT
+from realbook.layers.signal import STFT
 
 train_ds = tf.data.TFRecordDataset(training_filenames)
 val_ds = tf.data.TFRecordDataset(validation_filenames)
@@ -81,7 +81,7 @@ callback to the model's callback list.
 
 ```python3
 import tensorflow as tf
-from realbook.signal import STFT
+from realbook.layers.signal import STFT
 from realbook.callbacks.utilization import MemoryUtilizationCallback
 
 train_ds = tf.data.TFRecordDataset(training_filenames)

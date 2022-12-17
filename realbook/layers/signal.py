@@ -380,3 +380,151 @@ class MelSpectrogram(Spectrogram):
             }
         )
         return config
+    
+
+class Magnitude(tf.keras.layers.Layer):
+    def __init__(
+            self,
+            name: Optional[str] = None,
+            dtype: tf.dtypes.DType = tf.float32,
+            *args: Any,
+            **kwargs: Any,
+    ):
+        """
+        A Tensorflow Keras layer that calculates the magnitude of a complex tensor.
+        The input is complex-valued with shape (num_batches, time, fft_length // 2 + 1, 2).
+        The output is real-valued with shape (num_batches, time, fft_length // 2 + 1)
+
+        Args:
+            name: Name of the layer.
+            dtype: Type used in calculation.
+        """
+        super().__init__(name=name, dtype=dtype, *args, **kwargs)
+
+    def call(self, inputs: tf.Tensor) -> tf.Tensor:
+        return tf.math.abs(inputs)
+
+    def get_config(self) -> Dict[str, Any]:
+        config: Dict[str, Any] = super().get_config().copy()
+        return config
+
+
+class Phase(tf.keras.layers.Layer):
+    def __init__(
+            self,
+            name: Optional[str] = None,
+            dtype: tf.dtypes.DType = tf.float32,
+            *args: Any,
+            **kwargs: Any,
+    ):
+        """
+        A Tensorflow Keras layer that calculates the phase of a complex tensor.
+        The input is complex-valued with shape (num_batches, time, fft_length // 2 + 1, 2).
+        The output is real-valued with shape (num_batches, time, fft_length // 2 + 1)
+
+        Args:
+            name: Name of the layer.
+            dtype: Type used in calculation.
+        """
+        super().__init__(name=name, dtype=dtype, *args, **kwargs)
+
+    def call(self, inputs: tf.Tensor) -> tf.Tensor:
+        return tf.math.angle(inputs)
+
+    def get_config(self) -> Dict[str, Any]:
+        config: Dict[str, Any] = super().get_config().copy()
+        return config
+
+
+class MagnitudeToDecibel(tf.keras.layers.Layer):
+    def __init__(
+            self,
+            ref: float = 1.0,
+            amin: float = 1e-10,
+            top_db: Optional[float] = None,
+            name: Optional[str] = None,
+            dtype: tf.dtypes.DType = tf.float32,
+    ):
+        """
+        A Tensorflow Keras layer that converts magnitude spectrograms to decibel scale.
+        The input is real-valued with shape (num_batches, num_samples).
+        The output is real-valued with shape (num_batches, num_samples).
+
+        Args:
+            ref: Reference power.
+            amin: Minimum power.
+            top_db: Minimum negative cut-off in decibels. A reasonable number is 80.
+            name: Name of the layer.
+            dtype: Type used in calculation.
+        """
+        super().__init__(name=name, dtype=dtype)
+        self.ref = ref
+        self.amin = amin
+        self.top_db = top_db
+
+    @staticmethod
+    def _log10(x):
+        return tf.math.log(x) / tf.math.log(tf.constant(10, dtype=x.dtype))
+
+    def call(self, inputs: tf.Tensor) -> tf.Tensor:
+
+        if tf.keras.backend.ndim(inputs) > 1:  # we assume x is batch in this case
+            max_axis = tuple(range(tf.keras.backend.ndim(inputs))[1:])
+        else:
+            max_axis = None
+
+        amin = self.amin if self.amin is not None else 1e-5
+
+        amin = tf.cast(amin, dtype=inputs.dtype)
+        log_spec = 10.0 * self._log10(tf.math.maximum(inputs, amin))
+        log_spec = log_spec - 10.0 * self._log10(tf.math.maximum(amin, self.ref))
+
+        log_spec = tf.math.maximum(
+            log_spec, tf.math.reduce_max(log_spec, axis=max_axis, keepdims=True) - self.top_db
+        )
+
+        return log_spec
+
+    def get_config(self) -> Dict[str, Any]:
+        config: Dict[str, Any] = super().get_config().copy()
+        config.update(
+            {
+                "ref": self.ref,
+                "amin": self.amin,
+                "top_db": self.top_db,
+            }
+        )
+        return config
+
+
+class ApplyFilterbank(tf.keras.layers.Layer):
+    def __init__(
+            self,
+            filterbank: tf.Tensor,
+            name: Optional[str] = None,
+            dtype: tf.dtypes.DType = tf.float32,
+    ):
+        """
+        A Tensorflow Keras layer that applies a filterbank to a spectrogram.
+        The input is real-valued with shape (num_batches, num_samples).
+        The output is real-valued with shape (num_batches, num_samples).
+
+        Args:
+            filterbank: Filterbank to apply.
+            name: Name of the layer.
+            dtype: Type used in calculation.
+        """
+        super().__init__(name=name, dtype=dtype)
+        self.filterbank = filterbank
+
+    def call(self, inputs: tf.Tensor) -> tf.Tensor:
+        return tf.matmul(inputs, self.filterbank)
+
+    def get_config(self) -> Dict[str, Any]:
+        config: Dict[str, Any] = super().get_config().copy()
+        config.update(
+            {
+                "filterbank": self.filterbank,
+            }
+        )
+        return config

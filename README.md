@@ -16,7 +16,7 @@ Below are a few highlights of what we have written so far.
 
 - `FrozenGraphLayer` - Allows you to use a TF V1 graph as a Keras layer.
 - `CQT` - Constant-Q transform layers ported from [nnAudio](https://kinwaicheuk.github.io/nnAudio/index.html).
-- `Stft`, `Istft`, `MelSpectrogram`, `Spectrogram`, `Magnitude`, `Phase`, `MagnitudeToDecibel` and `ApplyFilterbank` - Layers that perform common audio feature preprocessing. All checked for correctness against [librosa](https://librosa.org/).
+- `Stft`, `Istft`, `MelSpectrogram`, `Spectrogram`, `Magnitude`, `Phase` and `MagnitudeToDecibel` - Layers that perform common audio feature preprocessing. All checked for correctness against [librosa](https://librosa.org/).
 
 ## Callbacks
 

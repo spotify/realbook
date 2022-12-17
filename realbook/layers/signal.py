@@ -394,8 +394,6 @@ class Magnitude(tf.keras.layers.Layer):
     ):
         """
         A Tensorflow Keras layer that calculates the magnitude of a complex tensor.
-        The input is complex-valued with shape (num_batches, time, fft_length // 2 + 1, 2).
-        The output is real-valued with shape (num_batches, time, fft_length // 2 + 1)
 
         Args:
             name: Name of the layer.
@@ -421,8 +419,6 @@ class Phase(tf.keras.layers.Layer):
     ):
         """
         A Tensorflow Keras layer that calculates the phase of a complex tensor.
-        The input is complex-valued with shape (num_batches, time, fft_length // 2 + 1, 2).
-        The output is real-valued with shape (num_batches, time, fft_length // 2 + 1)
 
         Args:
             name: Name of the layer.
@@ -448,9 +444,7 @@ class MagnitudeToDecibel(tf.keras.layers.Layer):
             dtype: tf.dtypes.DType = tf.float32,
     ):
         """
-        A Tensorflow Keras layer that converts magnitude spectrograms to decibel scale.
-        The input is real-valued with shape (num_batches, num_samples).
-        The output is real-valued with shape (num_batches, num_samples).
+        A Keras layer that converts a real-valued tensor to decibel scale.
 
         Args:
             ref: Reference power that would be scaled to 0 dB.

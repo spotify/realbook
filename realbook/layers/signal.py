@@ -477,36 +477,3 @@ class MagnitudeToDecibel(tf.keras.layers.Layer):
             }
         )
         return config
-
-
-class ApplyFilterbank(tf.keras.layers.Layer):
-    def __init__(
-            self,
-            filterbank: tf.Tensor,
-            name: Optional[str] = None,
-            dtype: tf.dtypes.DType = tf.float32,
-    ):
-        """
-        A Tensorflow Keras layer that applies a filterbank to a spectrogram.
-        The input is real-valued with shape (num_batches, num_samples).
-        The output is real-valued with shape (num_batches, num_samples).
-
-        Args:
-            filterbank: Filterbank to apply.
-            name: Name of the layer.
-            dtype: Type used in calculation.
-        """
-        super().__init__(name=name, dtype=dtype)
-        self.filterbank = filterbank
-
-    def call(self, inputs: tf.Tensor) -> tf.Tensor:
-        return tf.matmul(inputs, self.filterbank)
-
-    def get_config(self) -> Dict[str, Any]:
-        config: Dict[str, Any] = super().get_config().copy()
-        config.update(
-            {
-                "filterbank": self.filterbank,
-            }
-        )
-        return config

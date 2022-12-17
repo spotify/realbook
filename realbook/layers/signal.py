@@ -22,6 +22,8 @@ import librosa
 import tensorflow as tf
 import numpy as np
 
+from realbook.layers.math import log_base_b
+
 
 def _create_padded_window(
     window_fn: Callable[[int, tf.dtypes.DType], tf.Tensor],
@@ -441,7 +443,7 @@ class MagnitudeToDecibel(tf.keras.layers.Layer):
             self,
             ref: float = 1.0,
             amin: float = 1e-10,
-            top_db: Optional[float] = None,
+            top_db: float = 80.0,
             name: Optional[str] = None,
             dtype: tf.dtypes.DType = tf.float32,
     ):
@@ -451,9 +453,9 @@ class MagnitudeToDecibel(tf.keras.layers.Layer):
         The output is real-valued with shape (num_batches, num_samples).
 
         Args:
-            ref: Reference power.
-            amin: Minimum power.
-            top_db: Minimum negative cut-off in decibels. A reasonable number is 80.
+            ref: Reference power that would be scaled to 0 dB.
+            amin: Minimum power threshold.
+            top_db: Minimum negative cut-off in decibels.
             name: Name of the layer.
             dtype: Type used in calculation.
         """
@@ -462,26 +464,12 @@ class MagnitudeToDecibel(tf.keras.layers.Layer):
         self.amin = amin
         self.top_db = top_db
 
-    @staticmethod
-    def _log10(x):
-        return tf.math.log(x) / tf.math.log(tf.constant(10, dtype=x.dtype))
 
     def call(self, inputs: tf.Tensor) -> tf.Tensor:
 
-        if tf.keras.backend.ndim(inputs) > 1:  # we assume x is batch in this case
-            max_axis = tuple(range(tf.keras.backend.ndim(inputs))[1:])
-        else:
-            max_axis = None
-
-        amin = self.amin if self.amin is not None else 1e-5
-
-        amin = tf.cast(amin, dtype=inputs.dtype)
-        log_spec = 10.0 * self._log10(tf.math.maximum(inputs, amin))
-        log_spec = log_spec - 10.0 * self._log10(tf.math.maximum(amin, self.ref))
-
-        log_spec = tf.math.maximum(
-            log_spec, tf.math.reduce_max(log_spec, axis=max_axis, keepdims=True) - self.top_db
-        )
+        log_spec = 10.0 * (log_base_b(tf.math.maximum(inputs, self.amin), 10.) -
+                           log_base_b(tf.math.maximum(self.amin, self.ref), 10.))
+        log_spec = tf.math.maximum(log_spec, tf.math.reduce_max(log_spec, keepdims=True) - self.top_db)
 
         return log_spec
 

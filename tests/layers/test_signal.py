@@ -241,3 +241,50 @@ def test_mel_spectrogram(
     )(x).numpy()
     # These tolerances make look large, but the values we're comparing are in the 10e2-10e4 range.
     assert np.allclose(librosa_spec, rgp_spec, atol=1e-2, rtol=0)
+
+def test_magnitude() -> None:
+    x = np.random.normal(0, 1, 1024)
+    x_stft = librosa.stft(
+        x,
+        n_fft=256,
+        hop_length=256,
+        win_length=256,
+        center=True,
+    ).T
+
+    np_magnitude = np.abs(x_stft)
+    layer_magnitude = signal.Magnitude()(tf.expand_dims(x_stft, 0)).numpy()
+
+    assert np.allclose(np_magnitude, layer_magnitude, atol=1e-3, rtol=0)
+
+
+def test_phase() -> None:
+    x = np.random.normal(0, 1, 1024)
+    x_stft = librosa.stft(
+        x,
+        n_fft=256,
+        hop_length=256,
+        win_length=256,
+        center=True,
+    ).T
+
+    np_magnitude = np.angle(x_stft)
+    layer_magnitude = signal.Phase()(tf.expand_dims(x_stft, 0)).numpy()
+
+    assert np.allclose(np_magnitude, layer_magnitude, atol=1e-3, rtol=0)
+
+
+def test_magnitude_to_decibel() -> None:
+    x = np.random.normal(0, 1, 1024)
+    x_stft_magnitude = np.abs(librosa.stft(
+        x,
+        n_fft=256,
+        hop_length=256,
+        win_length=256,
+        center=True,
+    ).T)
+
+    librosa_magnitude_to_decibel = librosa.amplitude_to_db(x_stft_magnitude)
+    layer_magnitude_to_decibel = signal.MagnitudeToDecibel()(tf.expand_dims(x_stft_magnitude, 0)).numpy()
+
+    assert np.allclose(librosa_magnitude_to_decibel, layer_magnitude_to_decibel, atol=1e-3, rtol=0)

@@ -18,7 +18,7 @@
 import tensorflow as tf
 
 
-def log_base_b(x: tf.Tensor, base: int) -> tf.Tensor:
+def log_base_b(x: tf.Tensor, base: float) -> tf.Tensor:
     """
     Compute log_b(x)
     Args:

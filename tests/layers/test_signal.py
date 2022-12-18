@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import librosa
 import numpy as np
@@ -242,39 +242,69 @@ def test_mel_spectrogram(
     # These tolerances make look large, but the values we're comparing are in the 10e2-10e4 range.
     assert np.allclose(librosa_spec, rgp_spec, atol=1e-2, rtol=0)
 
-def test_magnitude() -> None:
-    x = np.random.normal(0, 1, 1024)
-    x_stft = librosa.stft(
-        x,
-        n_fft=256,
-        hop_length=256,
-        win_length=256,
-        center=True,
-    ).T
+@pytest.mark.parametrize(
+    "input_spec",
+    [
+        None,
+        [[0],[1],[2],[1j],[2j],],
+        [[1+2j],[3-4j],[-5+6j],[-7-8j],[9+10j],],
+    ],
+)
+def test_magnitude(input_spec: Optional[List[np.complex64]]) -> None:
+    if input_spec is None:
+        x = np.random.normal(0, 1, 1024)
+        x_stft = librosa.stft(
+            x,
+            n_fft=256,
+            hop_length=256,
+            win_length=256,
+            center=True,
+        ).T
+    else:
+        x_stft = np.array(input_spec, dtype=np.complex64)
 
     np_magnitude = np.abs(x_stft)
     layer_magnitude = signal.Magnitude()(tf.expand_dims(x_stft, 0)).numpy()
 
     assert np.allclose(np_magnitude, layer_magnitude, atol=1e-3, rtol=0)
 
+@pytest.mark.parametrize(
+    "input_spec",
+    [
+        None,
+        [[0],[1],[2],[1j],[2j],],
+        [[1+2j],[3-4j],[-5+6j],[-7-8j],[9+10j],],
+    ],
+)
+def test_phase(input_spec: Optional[List[np.complex64]]) -> None:
+    if input_spec is None:
+        x = np.random.normal(0, 1, 1024)
+        x_stft = librosa.stft(
+            x,
+            n_fft=256,
+            hop_length=256,
+            win_length=256,
+            center=True,
+        ).T
+    else:
+        x_stft = np.array(input_spec, dtype=np.complex64)
 
-def test_phase() -> None:
-    x = np.random.normal(0, 1, 1024)
-    x_stft = librosa.stft(
-        x,
-        n_fft=256,
-        hop_length=256,
-        win_length=256,
-        center=True,
-    ).T
+    np_phase = np.angle(x_stft)
+    layer_phase = signal.Phase()(tf.expand_dims(x_stft, 0)).numpy()
 
-    np_magnitude = np.angle(x_stft)
-    layer_magnitude = signal.Phase()(tf.expand_dims(x_stft, 0)).numpy()
-
-    assert np.allclose(np_magnitude, layer_magnitude, atol=1e-3, rtol=0)
+    assert np.allclose(np_phase, layer_phase, atol=1e-3, rtol=0)
 
 
-def test_magnitude_to_decibel() -> None:
+@pytest.mark.parametrize(
+    "ref,amin,top_db",
+    [
+        [1.0, 1e-10, 80.0],
+        [2.0, 1e-5, 60.0],
+        [0, 1e-5, 40.0],
+        [0.5, 1e-5, 40.0],
+    ]
+)
+def test_magnitude_to_decibel(ref: float, amin: float, top_db: float) -> None:
     x = np.random.normal(0, 1, 1024)
     x_stft_magnitude = np.abs(librosa.stft(
         x,
@@ -284,7 +314,7 @@ def test_magnitude_to_decibel() -> None:
         center=True,
     ).T)
 
-    librosa_magnitude_to_decibel = librosa.power_to_db(x_stft_magnitude)
-    layer_magnitude_to_decibel = signal.MagnitudeToDecibel()(tf.expand_dims(x_stft_magnitude, 0)).numpy()
+    librosa_magnitude_to_decibel = librosa.power_to_db(x_stft_magnitude, ref=ref, amin=amin, top_db=top_db)
+    layer_magnitude_to_decibel = signal.MagnitudeToDecibel(ref=ref, amin=amin, top_db=top_db)(tf.expand_dims(x_stft_magnitude, 0)).numpy()
 
     assert np.allclose(librosa_magnitude_to_decibel, layer_magnitude_to_decibel, atol=1e-3, rtol=0)

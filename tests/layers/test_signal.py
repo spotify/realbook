@@ -284,7 +284,7 @@ def test_magnitude_to_decibel() -> None:
         center=True,
     ).T)
 
-    librosa_magnitude_to_decibel = librosa.amplitude_to_db(x_stft_magnitude)
+    librosa_magnitude_to_decibel = librosa.power_to_db(x_stft_magnitude)
     layer_magnitude_to_decibel = signal.MagnitudeToDecibel()(tf.expand_dims(x_stft_magnitude, 0)).numpy()
 
     assert np.allclose(librosa_magnitude_to_decibel, layer_magnitude_to_decibel, atol=1e-3, rtol=0)

@@ -461,7 +461,7 @@ class MagnitudeToDecibel(tf.keras.layers.Layer):
 
     def call(self, inputs: tf.Tensor) -> tf.Tensor:
 
-        log_spec = 20.0 * (log_base_b(tf.math.maximum(inputs, self.amin), 10.) -
+        log_spec = 10.0 * (log_base_b(tf.math.maximum(inputs, self.amin), 10.) -
                            log_base_b(tf.math.maximum(self.amin, self.ref), 10.))
         log_spec = tf.math.maximum(log_spec, tf.math.reduce_max(log_spec, keepdims=True) - self.top_db)
 

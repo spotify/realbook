@@ -48,9 +48,7 @@ def test_stft_channels_should_raise() -> None:
         [False, 1024, 256, 512, 256],
     ],
 )
-def test_stft(
-    center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int
-) -> None:
+def test_stft(center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int) -> None:
     x = np.random.normal(0, 1, input_length)
     print(x.shape)
     librosa_stft = librosa.stft(
@@ -123,9 +121,7 @@ def test_istft_channels_should_raise() -> None:
         [False, 1023, 256, 128, 256],
     ],
 )
-def test_istft(
-    center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int
-) -> None:
+def test_istft(center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int) -> None:
     x = np.random.normal(0, 1, input_length)
     stft = signal.Stft(
         fft_length=fft_length,
@@ -351,13 +347,8 @@ def test_magnitude_to_decibel(ref: float, amin: float, top_db: float) -> None:
         ).T
     )
 
-    librosa_magnitude_to_decibel = librosa.power_to_db(
-        x_stft_magnitude, ref=ref, amin=amin, top_db=top_db
-    )
-    layer_magnitude_to_decibel = signal.MagnitudeToDecibel(
-        ref=ref, amin=amin, top_db=top_db
-    )(tf.expand_dims(x_stft_magnitude, 0)).numpy()
+    librosa_magnitude_to_decibel = librosa.power_to_db(x_stft_magnitude, ref=ref, amin=amin, top_db=top_db)
+    layer_magnitude_to_decibel = signal.MagnitudeToDecibel(ref=ref, amin=amin, top_db=top_db)(
+        tf.expand_dims(x_stft_magnitude, 0)).numpy()
 
-    assert np.allclose(
-        librosa_magnitude_to_decibel, layer_magnitude_to_decibel, atol=1e-3, rtol=0
-    )
+    assert np.allclose(librosa_magnitude_to_decibel, layer_magnitude_to_decibel, atol=1e-3, rtol=0)

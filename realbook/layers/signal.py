@@ -344,7 +344,7 @@ class MelSpectrogram(Spectrogram):
         super().__init__(fft_length=fft_length, *args, **kwargs)
         self.n_mels = n_mels
         self.lower_edge_hertz = lower_edge_hertz
-        self.upper_edge_hertz = (upper_edge_hertz if upper_edge_hertz else float(sample_rate) / 2.0)
+        self.upper_edge_hertz = upper_edge_hertz if upper_edge_hertz else float(sample_rate) / 2.0
         self.htk = htk
         self.sample_rate = sample_rate
         self.normalization = normalization

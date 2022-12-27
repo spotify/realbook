@@ -183,6 +183,14 @@ $ tox -e check-formatting
 $ tox -e py38
 ```
 
+### Formatting files
+
+Before committing PR's please format your files using tox as some of the formatting options realboook uses is different than the defaults of the [Black](https://black.readthedocs.io/en/stable/) formatter:
+
+```sh
+tox -e format
+```
+
 See [tox's documentation](https://tox.readthedocs.io/en/latest/) for more information.
 
 ## Copyright and License

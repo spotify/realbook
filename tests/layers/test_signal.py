@@ -48,7 +48,9 @@ def test_stft_channels_should_raise() -> None:
         [False, 1024, 256, 512, 256],
     ],
 )
-def test_stft(center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int) -> None:
+def test_stft(
+    center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int
+) -> None:
     x = np.random.normal(0, 1, input_length)
     print(x.shape)
     librosa_stft = librosa.stft(
@@ -121,7 +123,9 @@ def test_istft_channels_should_raise() -> None:
         [False, 1023, 256, 128, 256],
     ],
 )
-def test_istft(center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int) -> None:
+def test_istft(
+    center: bool, input_length: int, fft_length: int, hop_length: int, win_length: int
+) -> None:
     x = np.random.normal(0, 1, input_length)
     stft = signal.Stft(
         fft_length=fft_length,
@@ -237,7 +241,12 @@ def test_mel_spectrogram(
         fmin=fmin,
     ).T
     rgp_spec = signal.MelSpectrogram(
-        fft_length=256, hop_length=128, center=center, normalization=normalization, htk=htk, lower_edge_hertz=fmin
+        fft_length=256,
+        hop_length=128,
+        center=center,
+        normalization=normalization,
+        htk=htk,
+        lower_edge_hertz=fmin,
     )(x).numpy()
     # These tolerances make look large, but the values we're comparing are in the 10e2-10e4 range.
     assert np.allclose(librosa_spec, rgp_spec, atol=1e-2, rtol=0)
@@ -247,8 +256,20 @@ def test_mel_spectrogram(
     "input_spec",
     [
         None,
-        [[0], [1], [2], [1j], [2j], ],
-        [[1 + 2j], [3 - 4j], [-5 + 6j], [-7 - 8j], [9 + 10j], ],
+        [
+            [0],
+            [1],
+            [2],
+            [1j],
+            [2j],
+        ],
+        [
+            [1 + 2j],
+            [3 - 4j],
+            [-5 + 6j],
+            [-7 - 8j],
+            [9 + 10j],
+        ],
     ],
 )
 def test_magnitude(input_spec: Optional[List[np.complex64]]) -> None:
@@ -274,8 +295,20 @@ def test_magnitude(input_spec: Optional[List[np.complex64]]) -> None:
     "input_spec",
     [
         None,
-        [[0], [1], [2], [1j], [2j], ],
-        [[1 + 2j], [3 - 4j], [-5 + 6j], [-7 - 8j], [9 + 10j], ],
+        [
+            [0],
+            [1],
+            [2],
+            [1j],
+            [2j],
+        ],
+        [
+            [1 + 2j],
+            [3 - 4j],
+            [-5 + 6j],
+            [-7 - 8j],
+            [9 + 10j],
+        ],
     ],
 )
 def test_phase(input_spec: Optional[List[np.complex64]]) -> None:
@@ -304,20 +337,27 @@ def test_phase(input_spec: Optional[List[np.complex64]]) -> None:
         [2.0, 1e-5, 60.0],
         [0, 1e-5, 40.0],
         [0.5, 1e-5, 40.0],
-    ]
+    ],
 )
 def test_magnitude_to_decibel(ref: float, amin: float, top_db: float) -> None:
     x = np.random.normal(0, 1, 1024)
-    x_stft_magnitude = np.abs(librosa.stft(
-        x,
-        n_fft=256,
-        hop_length=256,
-        win_length=256,
-        center=True,
-    ).T)
+    x_stft_magnitude = np.abs(
+        librosa.stft(
+            x,
+            n_fft=256,
+            hop_length=256,
+            win_length=256,
+            center=True,
+        ).T
+    )
 
-    librosa_magnitude_to_decibel = librosa.power_to_db(x_stft_magnitude, ref=ref, amin=amin, top_db=top_db)
-    layer_magnitude_to_decibel = \
-        signal.MagnitudeToDecibel(ref=ref, amin=amin, top_db=top_db)(tf.expand_dims(x_stft_magnitude, 0)).numpy()
+    librosa_magnitude_to_decibel = librosa.power_to_db(
+        x_stft_magnitude, ref=ref, amin=amin, top_db=top_db
+    )
+    layer_magnitude_to_decibel = signal.MagnitudeToDecibel(
+        ref=ref, amin=amin, top_db=top_db
+    )(tf.expand_dims(x_stft_magnitude, 0)).numpy()
 
-    assert np.allclose(librosa_magnitude_to_decibel, layer_magnitude_to_decibel, atol=1e-3, rtol=0)
+    assert np.allclose(
+        librosa_magnitude_to_decibel, layer_magnitude_to_decibel, atol=1e-3, rtol=0
+    )

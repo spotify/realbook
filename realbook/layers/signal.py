@@ -33,7 +33,9 @@ def _create_padded_window(
     lpad = (fft_length - unpadded_window_length) // 2
     rpad = fft_length - unpadded_window_length - lpad
 
-    def padded_window(window_length: int, dtype: tf.dtypes.DType = tf.float32) -> tf.Tensor:
+    def padded_window(
+        window_length: int, dtype: tf.dtypes.DType = tf.float32
+    ) -> tf.Tensor:
         # This is a trick to match librosa's way of handling window lengths < their fft_lengths
         # In that case the window is 0 padded such that the window is centered around 0s
         # In the Tensorflow case, the window is computed, multiplied against the frame and then
@@ -104,7 +106,8 @@ class Stft(tf.keras.layers.Layer):
             self.spec = tf.keras.layers.Lambda(
                 lambda x: tf.pad(
                     x,
-                    [[0, 0] for _ in range(input_shape.rank - 1)] + [[self.fft_length // 2, self.fft_length // 2]],
+                    [[0, 0] for _ in range(input_shape.rank - 1)]
+                    + [[self.fft_length // 2, self.fft_length // 2]],
                     mode=self.pad_mode,
                 )
             )
@@ -183,7 +186,9 @@ class Istft(tf.keras.layers.Layer):
 
         if self.fft_length <= self.hop_length:
             # If this is true then the inverse window function will contain a nan in some cases.
-            raise ValueError("FFT Length must be less than or equal to hop length or else nans will appear.")
+            raise ValueError(
+                "FFT Length must be less than or equal to hop length or else nans will appear."
+            )
 
         if self.window_length < self.fft_length:
             warnings.warn(
@@ -205,7 +210,9 @@ class Istft(tf.keras.layers.Layer):
                 "like (num_frames, num_bins) or (num_batches, num_frames, num_bins)."
             )
 
-        self.window = _create_padded_window(self.window_fn, self.window_length, self.fft_length)(
+        self.window = _create_padded_window(
+            self.window_fn, self.window_length, self.fft_length
+        )(
             self.fft_length
         )  # type: ignore
 
@@ -235,12 +242,16 @@ class Istft(tf.keras.layers.Layer):
                 )
             else:  # batched
                 self.slice_op = tf.keras.layers.Lambda(
-                    lambda x: x[:, int(self.fft_length // 2) : -int(self.fft_length // 2)]
+                    lambda x: x[
+                        :, int(self.fft_length // 2) : -int(self.fft_length // 2)
+                    ]
                 )
 
     def call(self, inputs: tf.Tensor) -> tf.Tensor:
         istft = (
-            tf.signal.overlap_and_add(self.window * tf.signal.irfft(inputs), frame_step=self.hop_length)
+            tf.signal.overlap_and_add(
+                self.window * tf.signal.irfft(inputs), frame_step=self.hop_length
+            )
             / self.window_sum
         )
         return self.slice_op(istft)
@@ -344,7 +355,9 @@ class MelSpectrogram(Spectrogram):
         super().__init__(fft_length=fft_length, *args, **kwargs)
         self.n_mels = n_mels
         self.lower_edge_hertz = lower_edge_hertz
-        self.upper_edge_hertz = upper_edge_hertz if upper_edge_hertz else float(sample_rate) / 2.0
+        self.upper_edge_hertz = (
+            upper_edge_hertz if upper_edge_hertz else float(sample_rate) / 2.0
+        )
         self.htk = htk
         self.sample_rate = sample_rate
         self.normalization = normalization
@@ -382,15 +395,15 @@ class MelSpectrogram(Spectrogram):
             }
         )
         return config
-    
+
 
 class Magnitude(tf.keras.layers.Layer):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            dtype: tf.dtypes.DType = tf.float32,
-            *args: Any,
-            **kwargs: Any,
+        self,
+        name: Optional[str] = None,
+        dtype: tf.dtypes.DType = tf.float32,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
         A Tensorflow Keras layer that calculates the magnitude of a complex tensor.
@@ -411,11 +424,11 @@ class Magnitude(tf.keras.layers.Layer):
 
 class Phase(tf.keras.layers.Layer):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            dtype: tf.dtypes.DType = tf.float32,
-            *args: Any,
-            **kwargs: Any,
+        self,
+        name: Optional[str] = None,
+        dtype: tf.dtypes.DType = tf.float32,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
         A Tensorflow Keras layer that calculates the phase of a complex tensor.
@@ -436,12 +449,12 @@ class Phase(tf.keras.layers.Layer):
 
 class MagnitudeToDecibel(tf.keras.layers.Layer):
     def __init__(
-            self,
-            ref: float = 1.0,
-            amin: float = 1e-10,
-            top_db: float = 80.0,
-            name: Optional[str] = None,
-            dtype: tf.dtypes.DType = tf.float32,
+        self,
+        ref: float = 1.0,
+        amin: float = 1e-10,
+        top_db: float = 80.0,
+        name: Optional[str] = None,
+        dtype: tf.dtypes.DType = tf.float32,
     ):
         """
         A Keras layer that converts a real-valued tensor to decibel scale.
@@ -458,12 +471,14 @@ class MagnitudeToDecibel(tf.keras.layers.Layer):
         self.amin = amin
         self.top_db = top_db
 
-
     def call(self, inputs: tf.Tensor) -> tf.Tensor:
-
-        log_spec = 10.0 * (log_base_b(tf.math.maximum(inputs, self.amin), 10.) -
-                           log_base_b(tf.math.maximum(self.amin, self.ref), 10.))
-        log_spec = tf.math.maximum(log_spec, tf.math.reduce_max(log_spec, keepdims=True) - self.top_db)
+        log_spec = 10.0 * (
+            log_base_b(tf.math.maximum(inputs, self.amin), 10.0)
+            - log_base_b(tf.math.maximum(self.amin, self.ref), 10.0)
+        )
+        log_spec = tf.math.maximum(
+            log_spec, tf.math.reduce_max(log_spec, keepdims=True) - self.top_db
+        )
 
         return log_spec
 

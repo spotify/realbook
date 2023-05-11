@@ -209,7 +209,7 @@ class Istft(tf.keras.layers.Layer):
             self.fft_length
         )  # type: ignore
 
-        self.window_sum = librosa_filters.window_sumsquare(
+        self.window_sum = librosa_filters.window_sumsquare(  # type: ignore
             window=self.window.numpy(),
             n_frames=input_shape[0] if input_shape.rank == 2 else input_shape[1],
             win_length=self.window_length,
@@ -353,7 +353,7 @@ class MelSpectrogram(Spectrogram):
         super().build(input_shape)
 
         self.mel_weight_matrix = tf.constant(
-            librosa_filters.mel(
+            librosa_filters.mel(  # type: ignore
                 sr=self.sample_rate,
                 n_fft=self.fft_length,
                 n_mels=self.n_mels,

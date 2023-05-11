@@ -18,11 +18,11 @@
 import warnings
 from typing import Any, Callable, Dict, Optional, Union
 
-import librosa
 import tensorflow as tf
 import numpy as np
 
 from realbook.layers.math import log_base_b
+from realbook.vendor.librosa import librosa_filters
 
 
 def _create_padded_window(
@@ -209,7 +209,7 @@ class Istft(tf.keras.layers.Layer):
             self.fft_length
         )  # type: ignore
 
-        self.window_sum = librosa.filters.window_sumsquare(
+        self.window_sum = librosa_filters.window_sumsquare(
             window=self.window.numpy(),
             n_frames=input_shape[0] if input_shape.rank == 2 else input_shape[1],
             win_length=self.window_length,
@@ -353,7 +353,7 @@ class MelSpectrogram(Spectrogram):
         super().build(input_shape)
 
         self.mel_weight_matrix = tf.constant(
-            librosa.filters.mel(
+            librosa_filters.mel(
                 sr=self.sample_rate,
                 n_fft=self.fft_length,
                 n_mels=self.n_mels,

@@ -359,9 +359,7 @@ def fft_frequencies(*, sr: float = 22050, n_fft: int = 2048) -> np.ndarray:
     return np.fft.rfftfreq(n=n_fft, d=1.0 / sr)
 
 
-def hz_to_mel(
-    frequencies: _ScalarOrSequence[_FloatLike_co], *, htk: bool = False
-) -> Union[np.floating[Any], np.ndarray]:
+def hz_to_mel(frequencies: _ScalarOrSequence[_FloatLike_co], *, htk: bool = False) -> np.ndarray:
     """Convert Hz to Mels
 
     Examples
@@ -417,9 +415,7 @@ def hz_to_mel(
     return mels
 
 
-def mel_to_hz(
-    mels: _ScalarOrSequence[_FloatLike_co], *, htk: bool = False
-) -> Union[np.floating[Any], np.ndarray]:
+def mel_to_hz(mels: _ScalarOrSequence[_FloatLike_co], *, htk: bool = False) -> np.ndarray:
     """Convert mel bin numbers to frequencies
 
     Examples

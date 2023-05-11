@@ -469,9 +469,7 @@ def mel_to_hz(mels: _ScalarOrSequence[_FloatLike_co], *, htk: bool = False) -> n
     return freqs
 
 
-def mel_frequencies(
-    n_mels: int = 128, *, fmin: float = 0.0, fmax: float = 11025.0, htk: bool = False
-) -> np.ndarray:
+def mel_frequencies(n_mels: int = 128, *, fmin: float = 0.0, fmax: float = 11025.0, htk: bool = False) -> np.ndarray:
     """Compute an array of acoustic frequencies tuned to the mel scale.
 
     The mel scale is a quasi-logarithmic function of acoustic frequency

@@ -22,7 +22,7 @@ import tensorflow as tf
 import numpy as np
 
 from realbook.layers.math import log_base_b
-from realbook.vendor.librosa import librosa_filters
+from realbook.vendor import librosa_filters
 
 
 def _create_padded_window(

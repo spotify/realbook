@@ -14,6 +14,9 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 
+# This is all copied from Librosa: don't bother type checking with MyPy.
+# type: ignore
+
 import warnings
 import scipy
 import numpy as np

@@ -106,7 +106,7 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
 
             with self.tensorboard_writer.as_default():
                 # Pull n random batches from the dataset and send them to TensorBoard.
-                for (data, _) in self.example_batches:
+                for data, _ in self.example_batches:
                     assert tf.rank(data) == 2, "Expected input data to be of rank 2, with shape (batch, audio)."
                     assert tf.shape(data)[0] < tf.shape(data)[1], (
                         "Expected input data to be of rank 2, with shape (batch, audio), but got shape"

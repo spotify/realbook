@@ -18,7 +18,6 @@
 # type: ignore
 
 import warnings
-import scipy
 import numpy as np
 
 from numpy.typing import ArrayLike, DTypeLike
@@ -827,6 +826,11 @@ def get_window(
 
     elif isinstance(window, (str, tuple)) or np.isscalar(window):
         # TODO: if we add custom window functions in librosa, call them here
+
+        try:
+            import scipy
+        except ImportError:
+            raise NotImplementedError("Scipy not included in Realbook's vendored Librosa code.")
 
         win: np.ndarray = scipy.signal.get_window(window, Nx, fftbins=fftbins)
         return win

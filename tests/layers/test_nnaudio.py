@@ -19,8 +19,15 @@ import tensorflow as tf
 import torch
 import numpy as np
 import pytest
-import librosa
-import librosa.display
+import platform
+
+try:
+    import librosa
+except RuntimeError as e:
+    if "version of numpy" in str(e) and platform.system() == "Windows":
+        librosa = None
+    else:
+        raise
 
 from typing import List, Tuple, Union
 
@@ -63,6 +70,7 @@ def get_parameterized_model_variants(
     ]
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize(
     "match_torch_exactly,threshold,trainable",
     (
@@ -98,6 +106,7 @@ def test_cqt_trainable_weights() -> None:
     assert len(build_layer(our_nnaudio.CQT(trainable=True)).trainable_weights) == 2
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize("train", (True, False))
 def test_cqt_trainable_layers_change_on_training(train: bool) -> None:
     # Make a model that's trainable, then train it and ensure the weights change from the default.

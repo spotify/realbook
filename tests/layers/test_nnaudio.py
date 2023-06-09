@@ -24,16 +24,17 @@ import platform
 try:
     import librosa
     from realbook.layers import nnaudio as our_nnaudio
+    from nnAudio.Spectrogram import CQT2010v2
 except ImportError as e:
     if "numpy.core.multiarray failed to import" in str(e) and platform.system() == "Windows":
         librosa = None
         our_nnaudio = None  # type: ignore
+        CQT2010v2 = None
     else:
         raise
 
 from typing import Tuple, Union
 
-from nnAudio.Spectrogram import CQT2010v2
 
 TEST_SAMPLE_RATE = 22050
 

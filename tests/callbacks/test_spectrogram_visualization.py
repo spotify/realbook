@@ -17,11 +17,19 @@
 
 from typing import Any
 
+import platform
 import pytest
 import numpy as np
 import tensorflow as tf
 
-from realbook.callbacks.spectrogram_visualization import SpectrogramVisualizationCallback
+try:
+    from realbook.callbacks.spectrogram_visualization import SpectrogramVisualizationCallback
+except ImportError as e:
+    if "numpy.core.multiarray failed to import" in str(e) and platform.system() == "Windows":
+        SpectrogramVisualizationCallback = None  # type: ignore
+    else:
+        raise
+
 from realbook.layers.signal import Spectrogram
 
 
@@ -52,6 +60,10 @@ DEFAULT_SAMPLE_RATE = 22050
 TEST_AUDIO = np.linspace(0, 1, num=DEFAULT_SAMPLE_RATE * 10)
 
 
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
 def test_spectrogram_visualization_callback() -> None:
     fake_data = tf.data.Dataset.zip(
         (
@@ -80,6 +92,10 @@ def test_spectrogram_visualization_callback() -> None:
     assert True
 
 
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
 def test_callback_fails_on_unbatched_input() -> None:
     fake_data = tf.data.Dataset.zip(
         (
@@ -110,6 +126,10 @@ def test_callback_fails_on_unbatched_input() -> None:
     assert "shape" in str(excinfo.value)
 
 
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
 def test_callback_logs_but_doesnt_throw_by_default(caplog: pytest.LogCaptureFixture) -> None:
     fake_data = tf.data.Dataset.zip(
         (
@@ -133,6 +153,10 @@ def test_callback_logs_but_doesnt_throw_by_default(caplog: pytest.LogCaptureFixt
     assert "shape" in caplog.text
 
 
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
 def test_fails_on_no_image_like_layers() -> None:
     fake_data = tf.data.Dataset.zip(
         (
@@ -162,6 +186,10 @@ def test_fails_on_no_image_like_layers() -> None:
     assert "spectrogram" in str(excinfo.value)
 
 
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
 def test_flexible_with_input_shapes() -> None:
     fake_data = tf.data.Dataset.zip(
         (
@@ -192,6 +220,10 @@ def test_flexible_with_input_shapes() -> None:
     assert True
 
 
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
 def test_keras_functional_api_with_tfop_lambda() -> None:
     fake_data = tf.data.Dataset.zip(
         (

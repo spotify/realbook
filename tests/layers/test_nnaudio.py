@@ -23,51 +23,19 @@ import platform
 
 try:
     import librosa
+    from realbook.layers import nnaudio as our_nnaudio
 except ImportError as e:
     if "numpy.core.multiarray failed to import" in str(e) and platform.system() == "Windows":
         librosa = None
+        our_nnaudio = None  # type: ignore
     else:
         raise
 
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
-from realbook.layers import nnaudio as our_nnaudio
 from nnAudio.Spectrogram import CQT2010v2
 
 TEST_SAMPLE_RATE = 22050
-
-
-# Test using this model directly, as well as wrapping it in a Lambda layer.
-def get_parameterized_model_variants(
-    match_torch_exactly_values: Tuple[bool, bool] = (True, False)
-) -> List[tf.keras.layers.Layer]:
-    possible_models = [
-        our_nnaudio.CQT(match_torch_exactly=v, trainable=trainable)
-        for v in match_torch_exactly_values
-        for trainable in (True, False)
-    ]
-
-    return [
-        item
-        for models in [
-            [tf.keras.Sequential([tf.keras.layers.InputLayer((TEST_SAMPLE_RATE,)), model])]
-            + (
-                [
-                    tf.keras.Sequential(
-                        [
-                            tf.keras.layers.InputLayer((TEST_SAMPLE_RATE,)),
-                            tf.keras.layers.Lambda(lambda x: model(x)),
-                        ]
-                    )
-                ]
-                # Using a layer with trainable weights inside a Lambda layer isn't supported.
-                if not model.trainable
-                else []
-            )
-            for model in possible_models
-        ]
-        for item in models
-    ]
 
 
 @pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
@@ -91,12 +59,14 @@ def test_cqt(match_torch_exactly: bool, threshold: float, trainable: bool) -> No
 
 
 def build_layer(
-    layer: tf.keras.layers.Layer, input_shape: Union[Tuple[int], Tuple[int, int]] = (1, TEST_SAMPLE_RATE)
+    layer: tf.keras.layers.Layer,
+    input_shape: Union[Tuple[int], Tuple[int, int]] = (1, TEST_SAMPLE_RATE),
 ) -> tf.keras.layers.Layer:
     layer.build(input_shape)
     return layer
 
 
+@pytest.mark.skipif(our_nnaudio is None, reason="nnaudio failed to import on this platform.")
 def test_cqt_trainable_weights() -> None:
     assert not build_layer(our_nnaudio.CQT(trainable=False)).trainable
     assert not build_layer(our_nnaudio.CQT(trainable=False)).trainable_weights
@@ -107,6 +77,7 @@ def test_cqt_trainable_weights() -> None:
 
 
 @pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
+@pytest.mark.skipif(our_nnaudio is None, reason="nnaudio failed to import on this platform.")
 @pytest.mark.parametrize("train", (True, False))
 def test_cqt_trainable_layers_change_on_training(train: bool) -> None:
     # Make a model that's trainable, then train it and ensure the weights change from the default.

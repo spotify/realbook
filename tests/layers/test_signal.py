@@ -17,12 +17,20 @@
 
 from typing import Optional, Union, List
 
-import librosa
+import platform
 import numpy as np
 import pytest
 import tensorflow as tf
-from librosa.core.spectrum import _spectrogram
-from librosa.feature.spectral import melspectrogram
+
+try:
+    import librosa
+    from librosa.core.spectrum import _spectrogram
+    from librosa.feature.spectral import melspectrogram
+except ImportError as e:
+    if "numpy.core.multiarray failed to import" in str(e) and platform.system() == "Windows":
+        librosa = None
+    else:
+        raise
 
 from realbook.layers import signal
 
@@ -39,6 +47,7 @@ def test_stft_channels_should_raise() -> None:
         )(x)
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize(
     "center,input_length,fft_length,hop_length,win_length",
     [
@@ -68,6 +77,7 @@ def test_stft(center: bool, input_length: int, fft_length: int, hop_length: int,
     assert np.allclose(librosa_stft.imag, rgp_stft.imag, atol=1e-3, rtol=0)
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 def test_stft_batch() -> None:
     x = np.random.normal(0, 1, 1024)
     librosa_stft = librosa.stft(
@@ -105,6 +115,7 @@ def test_istft_channels_should_raise() -> None:
         )(tf.expand_dims(x_stft, -1))
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize(
     "center,input_length,fft_length,hop_length,win_length",
     [
@@ -185,6 +196,7 @@ def test_istft_batch() -> None:
     assert np.allclose(x, np.squeeze(x_istft), atol=1e-3, rtol=0)
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 def test_spectrogram() -> None:
     x = np.random.normal(0, 1, 1024).astype(np.float32)
     librosa_spec, _ = _spectrogram(
@@ -205,6 +217,7 @@ def test_spectrogram() -> None:
     assert np.allclose(librosa_spec, rgp_spec, atol=1e-2, rtol=0)
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize(
     "center,normalization,fmin,htk",
     [
@@ -248,6 +261,7 @@ def test_mel_spectrogram(
     assert np.allclose(librosa_spec, rgp_spec, atol=1e-2, rtol=0)
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize(
     "input_spec",
     [
@@ -287,6 +301,7 @@ def test_magnitude(input_spec: Optional[List[np.complex64]]) -> None:
     assert np.allclose(np_magnitude, layer_magnitude, atol=1e-3, rtol=0)
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize(
     "input_spec",
     [
@@ -326,6 +341,7 @@ def test_phase(input_spec: Optional[List[np.complex64]]) -> None:
     assert np.allclose(np_phase, layer_phase, atol=1e-3, rtol=0)
 
 
+@pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
 @pytest.mark.parametrize(
     "ref,amin,top_db",
     [

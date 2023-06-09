@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 #
-# Copyright 2022 Spotify AB
+# Copyright 2023 Spotify AB
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,9 +14,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = "Spotify"
-__version__ = "1.0.2"
-__email__ = "realbook@spotify.com"
-__description__ = "Python libraries for easier machine learning on audio"
-__url__ = "https://github.com/spotify/realbook"

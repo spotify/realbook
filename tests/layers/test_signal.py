@@ -26,8 +26,8 @@ try:
     import librosa
     from librosa.core.spectrum import _spectrogram
     from librosa.feature.spectral import melspectrogram
-except RuntimeError as e:
-    if "version of numpy" in str(e) and platform.system() == "Windows":
+except ImportError as e:
+    if "numpy.core.multiarray failed to import" in str(e) and platform.system() == "Windows":
         librosa = None
     else:
         raise

@@ -276,9 +276,7 @@ def create_function_from_tensors(
         # If this graph has any control inputs in it, those inputs will
         # likely not be convertible (nor do we want them in our converted model!)
         for node in graph_def.node:
-            node.input[:] = [
-                tensor_name for tensor_name in node.input if not tensor_name.startswith("^")
-            ]
+            node.input[:] = [tensor_name for tensor_name in node.input if not tensor_name.startswith("^")]
 
     try:
         return _load_concrete_function_from_graph_def(

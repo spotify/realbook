@@ -227,6 +227,7 @@ def get_saved_model_output_tensors(saved_model_or_path: Union[tf.keras.Model, st
 def create_function_from_tensors(
     input_tensors: Union[tf.Tensor, List[tf.Tensor]],
     output_tensors: Union[tf.Tensor, List[tf.Tensor]],
+    include_control_inputs: bool = False,
 ) -> WrappedFunction:
     """
     Given two lists of tensors (input and output), this method will return a tf.function
@@ -269,9 +270,19 @@ def create_function_from_tensors(
 
     graph_input_names = [t.name for t in graph.inputs]
 
+    graph_def = graph.as_graph_def()
+
+    if not include_control_inputs:
+        # If this graph has any control inputs in it, those inputs will
+        # likely not be convertible (nor do we want them in our converted model!)
+        for node in graph_def.node:
+            node.input[:] = [
+                tensor_name for tensor_name in node.input if not tensor_name.startswith("^")
+            ]
+
     try:
         return _load_concrete_function_from_graph_def(
-            graph.as_graph_def(),
+            graph_def,
             [t.name for t in input_tensors],
             [t.name for t in output_tensors],
         )

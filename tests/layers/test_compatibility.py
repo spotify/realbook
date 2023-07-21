@@ -285,6 +285,6 @@ def test_tensor_wrapper_layer_multiple_inputs() -> None:
         tensors = get_all_tensors_from_saved_model(saved_model_path)
         layer = TensorWrapperLayer(tensors[0].graph.inputs, tensors[0].graph.outputs)
 
-    outputs = layer([value for _name, value in sorted(x.items(), key=lambda t: t[0])])  # type: ignore
+    outputs = layer([value for _name, value in sorted(x.items(), key=lambda t: t[0])])
     for expected, actual in zip(expected_outputs, outputs):
         assert np.allclose(actual, expected)

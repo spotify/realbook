@@ -21,7 +21,7 @@ from google.protobuf.json_format import (
     MessageToDict as SerializeProtobufToDict,
     ParseDict as ParseDictToProtobuf,
 )
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, cast, Dict, List, Optional, Tuple, Union
 from tensorflow.python.framework.convert_to_constants import (
     convert_variables_to_constants_v2_as_graph,
 )
@@ -355,4 +355,4 @@ def dump_saved_model_to_graph(
         for node in graph_def.node:
             node.input[:] = [tensor_name for tensor_name in node.input if not tensor_name.startswith("^")]
 
-    return graph_def.SerializeToString()
+    return cast(bytes, graph_def.SerializeToString())

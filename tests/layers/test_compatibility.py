@@ -301,7 +301,7 @@ def test_create_function_from_tensors(include_control_inputs: bool) -> None:
 
     with keras_model_to_savedmodel(model) as saved_model_path:
         tensors = get_all_tensors_from_saved_model(saved_model_path)
-        control_inputs = sum([op.control_inputs for op in set([t.op for t in tensors])], [])
+        control_inputs: List[tf.Operation] = sum([op.control_inputs for op in set([t.op for t in tensors])], [])
         assert control_inputs
         fun = create_function_from_tensors(tensors[0], tensors[-1], include_control_inputs=include_control_inputs)
         control_inputs_in_graph = [node.name for node in fun.graph.as_graph_def().node if is_control_input(node.name)]

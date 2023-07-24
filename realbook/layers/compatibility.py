@@ -21,10 +21,11 @@ from google.protobuf.json_format import (
     MessageToDict as SerializeProtobufToDict,
     ParseDict as ParseDictToProtobuf,
 )
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, cast, Dict, List, Optional, Tuple, Union
 from tensorflow.python.framework.convert_to_constants import (
     convert_variables_to_constants_v2_as_graph,
 )
+from tensorflow.python.framework.importer import _IsControlInput as is_control_input
 from tensorflow.python.ops.op_selector import UnliftableError
 from tensorflow.python.eager.wrap_function import WrappedFunction
 
@@ -227,6 +228,7 @@ def get_saved_model_output_tensors(saved_model_or_path: Union[tf.keras.Model, st
 def create_function_from_tensors(
     input_tensors: Union[tf.Tensor, List[tf.Tensor]],
     output_tensors: Union[tf.Tensor, List[tf.Tensor]],
+    include_control_inputs: bool = False,
 ) -> WrappedFunction:
     """
     Given two lists of tensors (input and output), this method will return a tf.function
@@ -269,9 +271,17 @@ def create_function_from_tensors(
 
     graph_input_names = [t.name for t in graph.inputs]
 
+    graph_def = graph.as_graph_def()
+
+    if not include_control_inputs:
+        # If this graph has any control inputs in it, those inputs will
+        # likely not be convertible (nor do we want them in our converted model!)
+        for node in graph_def.node:
+            node.input[:] = [tensor_name for tensor_name in node.input if not is_control_input(tensor_name)]
+
     try:
         return _load_concrete_function_from_graph_def(
-            graph.as_graph_def(),
+            graph_def,
             [t.name for t in input_tensors],
             [t.name for t in output_tensors],
         )
@@ -310,3 +320,40 @@ class TensorWrapperLayer(tf.keras.layers.Layer):
             return self.func(*_input)
         else:
             return self.func(_input)
+
+
+def dump_saved_model_to_graph(
+    saved_model_or_path: Union[tf.keras.Model, str],
+    include_control_inputs: bool = False,
+) -> bytes:
+    """
+    Given a path to a SavedModel or an already loaded SavedModel,
+    render that SavedModel's default serving signature as a V1
+    TensorFlow .pb file, which is more easily visualized with tools like
+    Netron (https://netron.app).
+
+    The result of this function is a serialized GraphDef protobuf,
+    which can be saved to a .pb file directly:
+
+    ```
+    with open("graph-to-visualize.pb", "wb") as f:
+        f.write(dump_saved_model_to_graph("my_model.savedmodel"))
+    ```
+    """
+    if isinstance(saved_model_or_path, str):
+        savedmodel = tf.saved_model.load(saved_model_or_path)
+        model = savedmodel.signatures["serving_default"]
+        model._backref = savedmodel  # Without this, the SavedModel will be GC'd too early
+    else:
+        model = saved_model_or_path
+    if hasattr(model, "signatures"):
+        model = model.signatures["serving_default"]
+    _, graph_def = convert_variables_to_constants_v2_as_graph(model)
+
+    if not include_control_inputs:
+        # If this graph has any control inputs in it, those inputs will
+        # likely not be convertible (nor do we want them in our converted model!)
+        for node in graph_def.node:
+            node.input[:] = [tensor_name for tensor_name in node.input if not is_control_input(tensor_name)]
+
+    return cast(bytes, graph_def.SerializeToString())

@@ -25,6 +25,7 @@ from typing import Any, cast, Dict, List, Optional, Tuple, Union
 from tensorflow.python.framework.convert_to_constants import (
     convert_variables_to_constants_v2_as_graph,
 )
+from tensorflow.python.framework.importer import _IsControlInput as is_control_input
 from tensorflow.python.ops.op_selector import UnliftableError
 from tensorflow.python.eager.wrap_function import WrappedFunction
 
@@ -276,7 +277,9 @@ def create_function_from_tensors(
         # If this graph has any control inputs in it, those inputs will
         # likely not be convertible (nor do we want them in our converted model!)
         for node in graph_def.node:
-            node.input[:] = [tensor_name for tensor_name in node.input if not tensor_name.startswith("^")]
+            node.input[:] = [
+                tensor_name for tensor_name in node.input if not is_control_input(tensor_name)
+            ]
 
     try:
         return _load_concrete_function_from_graph_def(
@@ -353,6 +356,8 @@ def dump_saved_model_to_graph(
         # If this graph has any control inputs in it, those inputs will
         # likely not be convertible (nor do we want them in our converted model!)
         for node in graph_def.node:
-            node.input[:] = [tensor_name for tensor_name in node.input if not tensor_name.startswith("^")]
+            node.input[:] = [
+                tensor_name for tensor_name in node.input if not is_control_input(tensor_name)
+            ]
 
     return cast(bytes, graph_def.SerializeToString())

@@ -21,7 +21,9 @@ from typing import Iterator, List, Tuple
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Concatenate
 import numpy as np
+import pytest
 from contextlib import contextmanager
+from tensorflow.python.framework.importer import _IsControlInput as is_control_input
 from tensorflow.python.framework.convert_to_constants import (
     convert_variables_to_constants_v2_as_graph,
 )
@@ -31,6 +33,7 @@ from realbook.layers.compatibility import (
     FrozenGraphLayer,
     SavedModelLayer,
     get_all_tensors_from_saved_model,
+    create_function_from_tensors,
     TensorWrapperLayer,
 )
 
@@ -288,3 +291,23 @@ def test_tensor_wrapper_layer_multiple_inputs() -> None:
     outputs = layer([value for _name, value in sorted(x.items(), key=lambda t: t[0])])
     for expected, actual in zip(expected_outputs, outputs):
         assert np.allclose(actual, expected)
+
+
+@pytest.mark.parametrize("include_control_inputs", [False, True])
+def test_create_function_from_tensors(include_control_inputs: bool) -> None:
+    model = train_addition_model()
+    x = np.random.rand(1, model.input_shape[-1]).astype(np.float32)
+    expected_output = model.predict(x)
+
+    with keras_model_to_savedmodel(model) as saved_model_path:
+        tensors = get_all_tensors_from_saved_model(saved_model_path)
+        control_inputs = sum([op.control_inputs for op in set([t.op for t in tensors])], [])
+        assert control_inputs
+        fun = create_function_from_tensors(tensors[0], tensors[-1], include_control_inputs=include_control_inputs)
+        control_inputs_in_graph = [node.name for node in fun.graph.as_graph_def().node if is_control_input(node.name)]
+
+        # TODO(psobot): How do we generate a model with control inputs in TF 2.10+?
+        # Every attempt I made to generate such a model fails.
+        if not include_control_inputs:
+            assert not control_inputs_in_graph
+        assert np.allclose(fun(tf.constant(x)), expected_output)

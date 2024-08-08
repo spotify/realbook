@@ -15,10 +15,10 @@ jobs:
           - Windows
           - MacOs
         py:
+          - "3.11"
           - "3.10"
           - "3.9"
           - "3.8"
-          - "3.7"
     steps:
       - name: Setup python for test ${{ matrix.py }}
         uses: actions/setup-python@v3

@@ -38,7 +38,7 @@ def test_hang_debug_callback_does_not_fail() -> None:
         ),
     )
 
-    model = tf.keras.Sequential([tf.keras.Input(shape=(1)), tf.keras.layers.Dense(1)])
+    model = tf.keras.Sequential([tf.keras.Input(shape=(1,)), tf.keras.layers.Dense(1)])
     model.compile(loss="binary_crossentropy")
     model.fit(fake_data, steps_per_epoch=1, epochs=10, callbacks=[HangDebugCallback()])
 
@@ -70,7 +70,7 @@ def test_hang_debug_callback_prints_stacks_if_slow(
         ),
     )
 
-    model = tf.keras.Sequential([tf.keras.Input(shape=(1)), tf.keras.layers.Dense(1)])
+    model = tf.keras.Sequential([tf.keras.Input(shape=(1,)), tf.keras.layers.Dense(1)])
     model.compile(loss="binary_crossentropy")
     model.fit(
         fake_data,
@@ -114,7 +114,7 @@ def test_hang_debug_callback_aborts_if_really_slow(
         ),
     )
 
-    model = tf.keras.Sequential([tf.keras.Input(shape=(1)), tf.keras.layers.Dense(1)])
+    model = tf.keras.Sequential([tf.keras.Input(shape=(1,)), tf.keras.layers.Dense(1)])
     model.compile(loss="binary_crossentropy")
     model.fit(
         fake_data,

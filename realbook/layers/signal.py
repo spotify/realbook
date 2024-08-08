@@ -75,7 +75,7 @@ class Stft(tf.keras.layers.Layer):
             name: Name of the layer.
             dtype: Type used in calcuation.
         """
-        super().__init__(trainable=False, name=name, dtype=dtype, dynamic=False)
+        super().__init__(trainable=False, name=name, dtype=dtype)
         self.fft_length = fft_length
         self.window_length = window_length if window_length else self.fft_length
         self.hop_length = hop_length if hop_length else self.window_length // 4
@@ -171,7 +171,7 @@ class Istft(tf.keras.layers.Layer):
             name: Name of the layer.
             dtype: Type used in calcuation.
         """
-        super().__init__(trainable=False, name=name, dtype=dtype, dynamic=False)
+        super().__init__(trainable=False, name=name, dtype=dtype)
 
         # Because layer saves dtype as string???
         self.dtypes_type = dtype

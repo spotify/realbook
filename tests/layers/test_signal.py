@@ -21,6 +21,7 @@ import platform
 import numpy as np
 import pytest
 import tensorflow as tf
+from keras.src.backend.common import dtypes as keras_dtypes
 
 try:
     import librosa
@@ -262,6 +263,10 @@ def test_mel_spectrogram(
 
 
 @pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
+@pytest.mark.skipif(
+    "complex64" not in keras_dtypes.ALLOWED_DTYPES,
+    reason="This version of Keras does not support complex64",
+)
 @pytest.mark.parametrize(
     "input_spec",
     [
@@ -302,6 +307,10 @@ def test_magnitude(input_spec: Optional[List[np.complex64]]) -> None:
 
 
 @pytest.mark.skipif(librosa is None, reason="Librosa failed to import on this platform.")
+@pytest.mark.skipif(
+    "complex64" not in keras_dtypes.ALLOWED_DTYPES,
+    reason="This version of Keras does not support complex64",
+)
 @pytest.mark.parametrize(
     "input_spec",
     [

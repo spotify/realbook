@@ -95,7 +95,9 @@ def test_cqt_trainable_layers_change_on_training(train: bool) -> None:
 
     model.compile(loss="mse")
     if train:
-        signal = librosa.chirp(32.70, TEST_SAMPLE_RATE, length=TEST_SAMPLE_RATE * 10, linear=True)
+        signal = librosa.chirp(
+            fmin=32.70, fmax=TEST_SAMPLE_RATE, length=TEST_SAMPLE_RATE * 10, linear=True
+        )
         noise = np.random.rand(*signal.shape).astype(signal.dtype)
 
         model.fit(np.array([signal, noise]), np.array([1, 0]), epochs=10, verbose=0)

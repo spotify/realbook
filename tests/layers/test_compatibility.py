@@ -17,24 +17,25 @@
 
 import os
 import tempfile
+from contextlib import contextmanager
 from typing import Iterator, List, Tuple
-import tensorflow as tf
-from tensorflow.keras.layers import Dense, Concatenate
+
 import numpy as np
 import pytest
-from contextlib import contextmanager
-from tensorflow.python.framework.importer import _IsControlInput as is_control_input
+import tensorflow as tf
+from tensorflow.keras.layers import Concatenate, Dense
+from tensorflow.lite.python.util import get_grappler_config, run_graph_optimizations
 from tensorflow.python.framework.convert_to_constants import (
     convert_variables_to_constants_v2_as_graph,
 )
-from tensorflow.lite.python.util import run_graph_optimizations, get_grappler_config
+from tensorflow.python.framework.importer import _IsControlInput as is_control_input
 
 from realbook.layers.compatibility import (
     FrozenGraphLayer,
     SavedModelLayer,
-    get_all_tensors_from_saved_model,
-    create_function_from_tensors,
     TensorWrapperLayer,
+    create_function_from_tensors,
+    get_all_tensors_from_saved_model,
 )
 
 NUM_INPUT_VALUES = 10

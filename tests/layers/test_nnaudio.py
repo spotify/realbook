@@ -15,16 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-import torch
+import platform
+
 import numpy as np
 import pytest
-import platform
+import tensorflow as tf
+import torch
 
 try:
     import librosa
-    from realbook.layers import nnaudio as our_nnaudio
     from nnAudio.Spectrogram import CQT2010v2
+
+    from realbook.layers import nnaudio as our_nnaudio
 except ImportError as e:
     if "numpy.core.multiarray failed to import" in str(e) and platform.system() == "Windows":
         librosa = None
@@ -34,7 +36,6 @@ except ImportError as e:
         raise
 
 from typing import Tuple, Union
-
 
 TEST_SAMPLE_RATE = 22050
 

@@ -104,7 +104,8 @@ class Stft(tf.keras.layers.Layer):
             self.spec = tf.keras.layers.Lambda(
                 lambda x: tf.pad(
                     x,
-                    [[0, 0] for _ in range(input_shape.rank - 1)] + [[self.fft_length // 2, self.fft_length // 2]],
+                    [[0, 0] for _ in range(len(input_shape) - 1)]
+                    + [[self.fft_length // 2, self.fft_length // 2]],
                     mode=self.pad_mode,
                 )
             )

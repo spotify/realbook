@@ -13,25 +13,25 @@ jobs:
         os:
           - Ubuntu
           - Windows
-          - MacOs
+          - macOS
         py:
+          - "3.12"
           - "3.11"
           - "3.10"
           - "3.9"
-          - "3.8"
     steps:
       - name: Setup python for test ${{ matrix.py }}
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.py }}
       - uses: actions/checkout@v3
-      - name: Install soundlibs Ubuntu
+      - name: Install soundlibs on Ubuntu
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y --fix-missing pkg-config libsndfile1
         if: matrix.os == 'Ubuntu'
-      - name: Install soundlibs MacOs
+      - name: Install soundlibs on macOS
         run: brew install libsndfile
-        if: matrix.os == 'MacOs'
-      - name: Install soundlibs Windows
+        if: matrix.os == 'macOS'
+      - name: Install soundlibs on Windows
         run: choco install libsndfile
         if: matrix.os == 'Windows'
       - name: Install tox
@@ -39,6 +39,6 @@ jobs:
       # We will only check this on the minimum python version
       - name: Check formatting, lint and mypy
         run: tox -c tox.ini -e check-formatting,lint,mypy
-        if: matrix.py == '3.8'
+        if: matrix.py == '3.9'
       - name: Run test suite
         run: tox -c tox.ini -e py,manifest

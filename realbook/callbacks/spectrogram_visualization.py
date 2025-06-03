@@ -68,9 +68,12 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
         example_batches: Iterable[Tuple[tf.Tensor, tf.Tensor]],
         convert_to_dB: Union[bool, Callable[[tf.Tensor], tf.Tensor]] = True,
         sample_rate: int = 22050,
-        # By default log exceptions but don't halt the training process.
+        # By default, log exceptions but don't halt the training process.
         raise_on_error: bool = False,
         name: str = "Input to First Trainable Layer",
+        complex_to_magnitude: bool = True,
+        transpose: bool = True,
+        add_colorbar: bool = False,
         **kwargs: Any,
     ):
         self.tensorboard_writer = tensorboard_writer
@@ -79,6 +82,9 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
         self.sample_rate_hz = sample_rate
         self.raise_on_error = raise_on_error
         self.name = name
+        self.complex_to_magnitude = complex_to_magnitude
+        self.transpose = transpose
+        self.add_colorbar = add_colorbar
 
         self.specshow_arguments = kwargs
         if "x_axis" not in self.specshow_arguments:
@@ -136,20 +142,25 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
                     for spectrogram in spectrograms:
                         plt.clf()
                         fig, ax = plt.subplots()
-                        spectrogram = np.abs(spectrogram).T
+
+                        spectrogram = np.abs(spectrogram) if self.complex_to_magnitude else spectrogram.numpy()
+                        spectrogram = spectrogram.T if self.transpose else spectrogram
 
                         if self.convert_to_dB is True:
                             spectrogram = librosa.amplitude_to_db(spectrogram, ref=np.max)
                         elif callable(self.convert_to_dB):
                             spectrogram = self.convert_to_dB(spectrogram)
 
-                        librosa.display.specshow(
+                        img = librosa.display.specshow(
                             spectrogram,
                             sr=self.sample_rate_hz,
                             hop_length=hop_length,
                             ax=ax,
                             **self.specshow_arguments,
                         )
+
+                        if self.add_colorbar:
+                            fig.colorbar(img, ax=ax)
 
                         figs.append(plot_to_image(fig))
                     tf.summary.image(

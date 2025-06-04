@@ -59,6 +59,9 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
      - raise_on_error: if true, throw an exception if this callback causes an error.
                        by default, log exceptions but don't interrupt training.
      - name: the name of the summary data sent to TensorBoard.
+     - complex_to_magnitude: whether to convert a complex spectrogram to a magnitude spectrogram.
+     - transpose: whether to transpose the spectrogram before plotting it.
+     - add_colorbar: whether to add a colorbar to the spectrogram plot.
      - Any remaining keyword arguments are passed through to librosa.display.specshow.
     """
 

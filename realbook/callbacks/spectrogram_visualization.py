@@ -63,6 +63,7 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
      - transpose: whether to transpose the spectrogram before plotting it.
      - add_colorbar: whether to add a colorbar to the spectrogram plot.
      - Any remaining keyword arguments are passed through to librosa.display.specshow.
+        If `hop_length` is not set, it is inferred.
     """
 
     def __init__(

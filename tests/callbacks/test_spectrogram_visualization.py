@@ -30,7 +30,7 @@ except ImportError as e:
     else:
         raise
 
-from realbook.layers.signal import Spectrogram
+from realbook.layers.signal import Spectrogram, Magnitude
 
 
 try:
@@ -246,6 +246,106 @@ def test_keras_functional_api_with_tfop_lambda() -> None:
         fake_data,
         sample_rate=DEFAULT_SAMPLE_RATE,
         raise_on_error=True,
+    )
+
+    model.fit(fake_data, callbacks=[cb])
+    assert True
+
+
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
+def test_disable_complex_to_magnitude() -> None:
+    fake_data = tf.data.Dataset.zip(
+        (
+            tf.data.Dataset.from_tensor_slices([TEST_AUDIO]),
+            tf.data.Dataset.from_tensor_slices([1]),
+        )
+    ).batch(1)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.Input(shape=(None,)),
+            Spectrogram(),
+            Magnitude(),
+            tf.keras.layers.Dense(1),
+        ]
+    )
+    model.compile(loss="binary_crossentropy")
+
+    cb = SpectrogramVisualizationCallback(
+        FakeWriter(),
+        fake_data,
+        sample_rate=DEFAULT_SAMPLE_RATE,
+        raise_on_error=True,
+        complex_to_magnitude=False,
+    )
+
+    model.fit(fake_data, callbacks=[cb])
+    assert True
+
+
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
+def test_disable_transpose() -> None:
+    fake_data = tf.data.Dataset.zip(
+        (
+            tf.data.Dataset.from_tensor_slices([TEST_AUDIO]),
+            tf.data.Dataset.from_tensor_slices([1]),
+        )
+    ).batch(1)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.Input(shape=(None,)),
+            Spectrogram(),
+            tf.keras.layers.Dense(1),
+        ]
+    )
+    model.compile(loss="binary_crossentropy")
+
+    cb = SpectrogramVisualizationCallback(
+        FakeWriter(),
+        fake_data,
+        sample_rate=DEFAULT_SAMPLE_RATE,
+        raise_on_error=True,
+        transpose=False,
+    )
+
+    model.fit(fake_data, callbacks=[cb])
+    assert True
+
+
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
+def test_enable_colorbar() -> None:
+    fake_data = tf.data.Dataset.zip(
+        (
+            tf.data.Dataset.from_tensor_slices([TEST_AUDIO]),
+            tf.data.Dataset.from_tensor_slices([1]),
+        )
+    ).batch(1)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.Input(shape=(None,)),
+            Spectrogram(),
+            tf.keras.layers.Dense(1),
+        ]
+    )
+    model.compile(loss="binary_crossentropy")
+
+    cb = SpectrogramVisualizationCallback(
+        FakeWriter(),
+        fake_data,
+        sample_rate=DEFAULT_SAMPLE_RATE,
+        raise_on_error=True,
+        add_colorbar=True,
     )
 
     model.fit(fake_data, callbacks=[cb])

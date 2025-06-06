@@ -63,6 +63,7 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
      - transpose: whether to transpose the spectrogram before plotting it.
      - add_colorbar: whether to add a colorbar to the spectrogram plot.
      - Any remaining keyword arguments are passed through to librosa.display.specshow.
+        If `hop_length` is not set, it is inferred.
     """
 
     def __init__(
@@ -135,11 +136,13 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
                         # Ignore the single channel dimension, if it exists.
                         spectrograms = spectrograms[:, :, :, 0]
 
-                    # We can infer the hop length, as we know the input audio length
-                    # and sample rate used in the spectrogram
-                    length_in_samples = data.shape[-1]
-                    length_in_frames = spectrograms.shape[-2]
-                    hop_length = int(tf.math.ceil(length_in_samples / length_in_frames))
+                    if "hop_length" not in self.specshow_arguments:
+                        # We can infer the hop length, as we know the input audio length
+                        # and sample rate used in the spectrogram
+                        length_in_samples = data.shape[-1]
+                        length_in_frames = spectrograms.shape[-2] if self.transpose else spectrograms.shape[-1]
+                        hop_length = int(tf.math.ceil(length_in_samples / length_in_frames))
+                        self.specshow_arguments["hop_length"] = hop_length
 
                     figs = []
                     for spectrogram in spectrograms:
@@ -157,7 +160,6 @@ class SpectrogramVisualizationCallback(tf.keras.callbacks.Callback):
                         img = librosa.display.specshow(
                             spectrogram,
                             sr=self.sample_rate_hz,
-                            hop_length=hop_length,
                             ax=ax,
                             **self.specshow_arguments,
                         )

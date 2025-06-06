@@ -350,3 +350,36 @@ def test_enable_colorbar() -> None:
 
     model.fit(fake_data, callbacks=[cb])
     assert True
+
+
+@pytest.mark.skipif(
+    SpectrogramVisualizationCallback is None,
+    reason="SpectrogramVisualizationCallback import fails on this platform",
+)
+def test_set_hop_length() -> None:
+    fake_data = tf.data.Dataset.zip(
+        (
+            tf.data.Dataset.from_tensor_slices([TEST_AUDIO]),
+            tf.data.Dataset.from_tensor_slices([1]),
+        )
+    ).batch(1)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.Input(shape=(None,)),
+            Spectrogram(),
+            tf.keras.layers.Dense(1),
+        ]
+    )
+    model.compile(loss="binary_crossentropy")
+
+    cb = SpectrogramVisualizationCallback(
+        FakeWriter(),
+        fake_data,
+        sample_rate=DEFAULT_SAMPLE_RATE,
+        raise_on_error=True,
+        hop_length=1024,
+    )
+
+    model.fit(fake_data, callbacks=[cb])
+    assert True

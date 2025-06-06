@@ -18,8 +18,8 @@
 import warnings
 from typing import Any, Callable, Dict, Optional, Union
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 from realbook.layers.math import log_base_b
 from realbook.vendor import librosa_filters
@@ -86,7 +86,7 @@ class Stft(tf.keras.layers.Layer):
         self.pad_mode = pad_mode
 
     def build(self, input_shape: tf.TensorShape) -> None:
-        if input_shape.rank > 2:
+        if len(input_shape) > 2:
             raise ValueError(
                 "realbook.layers.signal.Stft received an input shape of "
                 f"{input_shape}, but only supports inputs shaped "
@@ -104,7 +104,7 @@ class Stft(tf.keras.layers.Layer):
             self.spec = tf.keras.layers.Lambda(
                 lambda x: tf.pad(
                     x,
-                    [[0, 0] for _ in range(input_shape.rank - 1)] + [[self.fft_length // 2, self.fft_length // 2]],
+                    [[0, 0] for _ in range(len(input_shape) - 1)] + [[self.fft_length // 2, self.fft_length // 2]],
                     mode=self.pad_mode,
                 )
             )
@@ -198,7 +198,7 @@ class Istft(tf.keras.layers.Layer):
             )
 
     def build(self, input_shape: tf.TensorShape) -> None:
-        if input_shape.rank > 3 or input_shape.rank <= 1:
+        if len(input_shape) > 3 or len(input_shape) <= 1:
             raise ValueError(
                 "realbook.layers.signal.Istft received an input shape of "
                 f"{input_shape}, but only supports inputs shaped "
@@ -211,7 +211,7 @@ class Istft(tf.keras.layers.Layer):
 
         self.window_sum = librosa_filters.window_sumsquare(  # type: ignore
             window=self.window.numpy(),
-            n_frames=input_shape[0] if input_shape.rank == 2 else input_shape[1],
+            n_frames=input_shape[0] if len(input_shape) == 2 else input_shape[1],
             win_length=self.window_length,
             n_fft=self.fft_length,
             hop_length=self.hop_length,
@@ -229,7 +229,7 @@ class Istft(tf.keras.layers.Layer):
 
         self.slice_op = tf.keras.layers.Lambda(lambda x: x)
         if self.center:
-            if input_shape.rank == 2:  # unbatched
+            if len(input_shape) == 2:  # unbatched
                 self.slice_op = tf.keras.layers.Lambda(
                     lambda x: x[int(self.fft_length // 2) : -int(self.fft_length // 2)]
                 )

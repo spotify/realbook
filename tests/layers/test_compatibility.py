@@ -17,24 +17,25 @@
 
 import os
 import tempfile
+from contextlib import contextmanager
 from typing import Iterator, List, Tuple
-import tensorflow as tf
-from tensorflow.keras.layers import Dense, Concatenate
+
 import numpy as np
 import pytest
-from contextlib import contextmanager
-from tensorflow.python.framework.importer import _IsControlInput as is_control_input
+import tensorflow as tf
+from tensorflow.keras.layers import Concatenate, Dense
+from tensorflow.lite.python.util import get_grappler_config, run_graph_optimizations
 from tensorflow.python.framework.convert_to_constants import (
     convert_variables_to_constants_v2_as_graph,
 )
-from tensorflow.lite.python.util import run_graph_optimizations, get_grappler_config
+from tensorflow.python.framework.importer import _IsControlInput as is_control_input
 
 from realbook.layers.compatibility import (
     FrozenGraphLayer,
     SavedModelLayer,
-    get_all_tensors_from_saved_model,
-    create_function_from_tensors,
     TensorWrapperLayer,
+    create_function_from_tensors,
+    get_all_tensors_from_saved_model,
 )
 
 NUM_INPUT_VALUES = 10
@@ -70,7 +71,7 @@ def train_addition_model() -> tf.keras.models.Model:
     # Learn a model that sums numbers:
     model = tf.keras.Sequential(
         [
-            tf.keras.layers.InputLayer(NUM_INPUT_VALUES),
+            tf.keras.layers.InputLayer((NUM_INPUT_VALUES,)),
             tf.keras.layers.Dense(1, name="my_layer"),
         ]
     )
@@ -83,7 +84,7 @@ def train_addition_model() -> tf.keras.models.Model:
 
 def train_named_input_and_output() -> tf.keras.models.Model:
     # Learn a model that sums numbers:
-    inputs = {"named_input": tf.keras.layers.Input(NUM_INPUT_VALUES)}
+    inputs = {"named_input": tf.keras.layers.Input((NUM_INPUT_VALUES,))}
     outputs = {"named_output": tf.keras.layers.Dense(1)(inputs["named_input"])}
     model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
     model.compile(loss="MSE")
@@ -97,7 +98,7 @@ def train_multi_input_multi_output() -> tf.keras.models.Model:
     """Train a dummy model to add numbers, but with multiple inputs and outputs: outAB = inA + inB, etc."""
 
     input_names = ["inA", "inB", "inC"]
-    inputs = {input_name: tf.keras.layers.Input(1) for input_name in input_names}
+    inputs = {input_name: tf.keras.layers.Input((1,)) for input_name in input_names}
 
     output_names = ["outAB", "outBC", "outAC"]
     concatenated = Concatenate()([v for _, v in sorted(inputs.items(), key=lambda t: t[0])])
@@ -177,7 +178,7 @@ def test_reserialize_model() -> None:
 
         from_frozen = tf.keras.Sequential(
             [
-                tf.keras.layers.InputLayer(NUM_INPUT_VALUES),
+                tf.keras.layers.InputLayer((NUM_INPUT_VALUES,)),
                 FrozenGraphLayer(
                     f.name,
                     input_tensor_names=[t.name for t in input_tensors],

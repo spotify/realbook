@@ -16,18 +16,21 @@
 # limitations under the License.
 
 import os
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
+
 import tensorflow as tf
 from google.protobuf.json_format import (
     MessageToDict as SerializeProtobufToDict,
+)
+from google.protobuf.json_format import (
     ParseDict as ParseDictToProtobuf,
 )
-from typing import Any, cast, Dict, List, Optional, Tuple, Union
+from tensorflow.python.eager.wrap_function import WrappedFunction
 from tensorflow.python.framework.convert_to_constants import (
     convert_variables_to_constants_v2_as_graph,
 )
 from tensorflow.python.framework.importer import _IsControlInput as is_control_input
 from tensorflow.python.ops.op_selector import UnliftableError
-from tensorflow.python.eager.wrap_function import WrappedFunction
 
 
 def _load_concrete_function_from_graph_def(
@@ -132,7 +135,9 @@ class SavedModelLayer(tf.keras.layers.Layer):
         return self.model(_input)
 
 
-def get_saved_model_input_tensors(saved_model_or_path: Union[tf.keras.Model, str]) -> List[tf.Tensor]:
+def get_saved_model_input_tensors(
+    saved_model_or_path: Union[tf.keras.Model, str],
+) -> List[tf.Tensor]:
     """
     Given a path to a SavedModel or an already loaded SavedModel,
     return a list of its input tensors. Useful for figuring out the
@@ -150,7 +155,9 @@ def get_saved_model_input_tensors(saved_model_or_path: Union[tf.keras.Model, str
     return [tensor for tensor in model.inputs if tensor.dtype != "resource"]
 
 
-def get_all_tensors_from_saved_model(saved_model_or_path: Union[tf.keras.Model, str]) -> List[tf.Tensor]:
+def get_all_tensors_from_saved_model(
+    saved_model_or_path: Union[tf.keras.Model, str],
+) -> List[tf.Tensor]:
     """
     Given a path to a SavedModel or an already loaded SavedModel,
     return a list of all of its tensors. Useful for figuring out the
@@ -208,7 +215,9 @@ def get_all_tensors_from_saved_model(saved_model_or_path: Union[tf.keras.Model, 
     return res
 
 
-def get_saved_model_output_tensors(saved_model_or_path: Union[tf.keras.Model, str]) -> List[tf.Tensor]:
+def get_saved_model_output_tensors(
+    saved_model_or_path: Union[tf.keras.Model, str],
+) -> List[tf.Tensor]:
     """
     Given a path to a SavedModel or an already loaded SavedModel,
     return a list of its output tensors. Useful for figuring out the

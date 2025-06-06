@@ -42,7 +42,7 @@ class NormalizedLog(tf.keras.layers.Layer):
 
     def build(self, input_shape: tf.Tensor) -> None:
         self.squeeze_batch = lambda batch: batch
-        rank = input_shape.rank
+        rank = len(input_shape)
         if rank == 4:
             assert input_shape[1] == 1, "If the rank is 4, the second dimension must be length 1"
             self.squeeze_batch = lambda batch: tf.squeeze(batch, axis=1)
